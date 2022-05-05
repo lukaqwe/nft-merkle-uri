@@ -31,9 +31,7 @@ function constructMerkleTree(
       
     }
 
-    console.log(inputs);
-
-    
+    console.log(inputs);   
 }
 
 function constructHash(chainId: Number, tokenId: Number, URL: String) {
@@ -55,7 +53,9 @@ task(
     .setAction(async (args, hre) => {
     const { input } = args;
         const metadata = JSON.parse(readFileSync(input).toString());
-        const chainId = hre.network.config.chainId == undefined ? 0 : hre.network.config.chainId ;
+        
+        hre.getChainId();
+        const chainId = hre.network.config.chainId == undefined ? 0 : hre.network.config.chainId;
         console.log("Chain ID =", chainId);
 
         let tokenDataInput  = new Array<tokenData>();
