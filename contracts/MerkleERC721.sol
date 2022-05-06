@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 // import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import '@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol';
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 
 import "./interfaces/IMerkleERC721.sol";
@@ -12,10 +12,9 @@ import "./interfaces/IMerkleERC721.sol";
 
 contract MerkleERC721 is IMerkleERC721, ERC721URIStorage, Ownable{
 
-    bytes32 internal _merkleRoot; // tokenID to its merkle root
+    bytes32 internal _merkleRoot; // can be set only with a valid merkle proof
     mapping (uint256 => bool) internal _tokenRevealed; // Merkle root is already set for the corresponding tokenID
-    // mapping (uint256 => string) internal _tokenURL; // Can be set only with a valid merkle proof
- 
+
     modifier whenNotAlreadySet(uint256 tokenID){
         require(!_tokenRevealed[tokenID], "Merkle root already set!");
         _;
@@ -29,34 +28,27 @@ contract MerkleERC721 is IMerkleERC721, ERC721URIStorage, Ownable{
     constructor(uint256 initialSupply) ERC721("Random", "RND") Ownable(){
         for(uint tokenID = 1; tokenID <= initialSupply; tokenID++)
             _mint(msg.sender, tokenID);
-    } 
-
-    // function tokenURI(uint256 tokenId) public view override returns (string memory){
-    //     require(_exists(tokenId), "URI query for nonexistent token");
-
-    //     return _tokenURL[tokenId];
-    // }
-
-    // function changeURI(uint256 tokenID, string calldata url, bytes32[] calldata proof) external override onlyTokenOwner(tokenID){
-    //     bytes32 digest = _calculateHash(tokenID, url);
-    //     bool isValid = MerkleProof.verify(proof, _merkleRoots[tokenID], digest);
-    //     require(isValid, "Merkle proof is not valid");
-    //     _tokenURL[tokenID] = url;
-
-    //     emit UpdatedURL(tokenID, url);
-    // }   
-
-    function reveal(uint256 tokenID, string calldata newURL, bytes32[] calldata proof ) external {
-        
     }
 
-    function setMerkleRoot(bytes32 root) external onlyOwner{
+    function reveal(uint256 tokenID, string calldata newURL, bytes32[] calldata proof ) external override 
+                                                            onlyTokenOwner(tokenID) whenNotAlreadySet(tokenID){
+        bytes32 digest = _calculateHash(tokenID, newURL);
+        bool isValid = MerkleProof.verify(proof, _merkleRoot, digest);
+        require(isValid, "Merkle proof is not valid");
+        
+        _setTokenURI(tokenID, newURL);
+        _tokenRevealed[tokenID] = true;
+        
+        emit UpdatedURL(tokenID, newURL);
+    }
+
+    function setMerkleRoot(bytes32 root) external override onlyOwner{
         _merkleRoot = root;
 
-        // emit MerkleRootUpdated(tokenID, root);      
+        emit MerkleRootUpdated(root);      
     }
 
-    function getMerkleRoot() external view returns(bytes32) {
+    function getMerkleRoot() external view override returns(bytes32) {
         return _merkleRoot;
     }
 
