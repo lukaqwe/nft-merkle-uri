@@ -13,14 +13,14 @@ task('reveal', "Reveal the URI of the token for all tokens available in metadata
         const {input, address} = args;
 
         const accounts = await hre.ethers.getSigners();
-        const initialSupply = 3;
+        const maxSupply = 3;
         const tokenOwner = accounts[0];
 
         const proofData = JSON.parse(readFileSync(input).toString());
 
         const merkleERC = MerkleERC721__factory.connect(address, tokenOwner);
 
-        for(let tokenID = 1; tokenID <= initialSupply; tokenID++ ){
+        for(let tokenID = 1; tokenID <= maxSupply; tokenID++ ){
             try {
                 const tx = await merkleERC.reveal(tokenID, proofData[tokenID]["url"], proofData[tokenID]["proof"]);
                 console.log("Reveal in tx ", tx.hash);
@@ -31,7 +31,7 @@ task('reveal', "Reveal the URI of the token for all tokens available in metadata
             
         }
         
-        for(let tokenID = 1; tokenID <= initialSupply; tokenID++ ){
+        for(let tokenID = 1; tokenID <= maxSupply; tokenID++ ){
 
             const uri = await merkleERC.tokenURI(tokenID);
             console.log("URI of token ", tokenID, "is", uri);

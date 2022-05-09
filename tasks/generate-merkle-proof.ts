@@ -6,44 +6,51 @@ import path from 'path';
 import { mkdir } from 'fs/promises';
 
 
-type RevealData = {
+export type RevealData = {
   tokenID: Number;
-  URL: String;
+  URL: string;
 }
 
-type ProofData = Map<RevealData, Array<String>>;
-
-
-function constructMerkleTree(
-    inputs : Array<RevealData>,
-    chainId : Number,
-): [MerkleTree, ProofData] {
-    
-    const revealDataWithHashes = new Map<RevealData, Buffer>(); // token ID to hashes
-    const allHashes = new Array<Buffer>();
-    for (const input of inputs){
-      const hash = constructHash(chainId, input.tokenID, input.URL);
-      revealDataWithHashes.set(input, hash);
-      allHashes.push(hash);
-    }
-    const tree = new MerkleTree(allHashes, keccak256, {sort : true});
-
-    const proofData = new Map<RevealData, Array<String>>();
-    for(const input of revealDataWithHashes.keys()){
-      const hash = revealDataWithHashes.get(input)!;
-      const proof = tree.getHexProof(hash);
-      proofData.set(input, proof);
-    }
-
-    // console.log(proofData)
-
-    return [tree, proofData];
+export type ProofsWithUrl  = {
+  URL : string;
+  Proof :  Array<string>
 }
 
-function constructHash(chainId: Number, tokenId: Number, URL: String) : Buffer {
+export type ProofInfo = Map<Number, ProofsWithUrl>
+export type ProofData = Map<RevealData, Array<String>>;
+
+
+export function constructMerkleTree(
+  inputs : Array<RevealData>,
+  chainId : Number,
+  address : String,
+): [MerkleTree, ProofInfo] {
+  
+  const revealDataWithHashes = new Map<RevealData, Buffer>(); // token ID to hashes
+  const allHashes = new Array<Buffer>();
+  for (const input of inputs){
+    const hash = constructHash(chainId, input.tokenID, input.URL, address);
+    revealDataWithHashes.set(input, hash);
+    allHashes.push(hash);
+  }
+  const tree = new MerkleTree(allHashes, keccak256, {sort : true});
+
+  const proofData = new  Map<Number, ProofsWithUrl>();
+  for(const input of revealDataWithHashes.keys()){
+    const hash = revealDataWithHashes.get(input)!;
+    const proof = tree.getHexProof(hash);
+    proofData.set(input.tokenID, {URL : input.URL , Proof : proof});
+  }
+
+  // console.log(proofData)
+
+  return [tree, proofData];
+}
+
+function constructHash(chainId: Number, tokenId: Number, URL: String, address : String) : Buffer {
     const hash = solidityKeccak256(
-        ['uint256', 'uint256', 'string'],
-        [chainId, tokenId, URL],
+        ['address','uint256', 'uint256', 'string'],
+        [address, chainId, tokenId, URL],
       );
       // console.log(tokenId, hash);
     return Buffer.from(hash.slice(2), 'hex'); // First two characters are '0x'
@@ -52,8 +59,9 @@ function constructHash(chainId: Number, tokenId: Number, URL: String) : Buffer {
 task("generate-merkle-proof", "Generates proof.json file containing a merkle proof for each token url")
   .addParam("input", "metadata.json file that contains the url links for each tokenID")
   .addParam("output", "output folder where the proof data will be generated")
+  .addParam("address", "address of the MerkleERC721 contract.")
   .setAction(async (args, hre) => {
-    const { input, output } = args;
+    const { input, output, address } = args;
     const metadata = JSON.parse(readFileSync(input).toString());
     
     
@@ -71,7 +79,7 @@ task("generate-merkle-proof", "Generates proof.json file containing a merkle pro
     }
 
     // console.log(tokenDataInput);
-    const [tree, proofs] = constructMerkleTree(tokenDataInput, Number(chainId));
+    const [tree, proofs] = constructMerkleTree(tokenDataInput, Number(chainId), address);
     
     
     const basePath = path.resolve(output, `${chainId.toString()}`);
@@ -85,7 +93,7 @@ task("generate-merkle-proof", "Generates proof.json file containing a merkle pro
       // console.log("KEY ", key);
       // console.log(value);
 
-      proofsAsObj[key.tokenID.toString()] = {"url" : key.URL, "proof" : value};
+      proofsAsObj[key.toString()] = {"url" : value.URL, "proof" : value.Proof};
     });
 
     const merkleProofsFilePath = path.resolve(basePath, 'reveal_proofs.json');

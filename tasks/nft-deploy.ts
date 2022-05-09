@@ -11,30 +11,47 @@ task('nft-deploy', "Deploy the nft contract")
         
         const accounts = await hre.ethers.getSigners();
         const deployer = accounts[0];
-        const initialSupply = 3;
+        const maxSupply = 3;
 
 
         // Deploy the contract
         const merkleERCDeployment = await hre.deployments.deploy('MerkleERC721', {
             from: deployer.address,
-            args: [initialSupply],
+            args: [maxSupply],
             log: true,
         });
 
-        console.log("Contract deployed to: ", merkleERCDeployment.address, ",\nby account :", deployer.address);
+        const address = merkleERCDeployment.address;
+
+        console.log("Contract deployed to: ", address, ",\nby account :", deployer.address);
         
         // Setting the merkle root
         const merkleRoot = (await hre.run('generate-merkle-proof', {
             input,
             output,
+            address,
         })) as string;
 
         const merkleERC = MerkleERC721__factory.connect(merkleERCDeployment.address, deployer);
         {
             const tx = await merkleERC.setMerkleRoot(merkleRoot);
+            await tx.wait(); // tx deployed here, waiting is important
             console.log("Merkle root set in transaction : ", tx.hash);
         }
+        {
+            for(var tokenID = 1; tokenID <= maxSupply; tokenID++ ){
+                const tx = await merkleERC.mintNFT(deployer.address, tokenID);
+                await tx.wait();
+                console.log("NFT minted in tx ", tx.hash);
+            }
+        }
+        {
+            const tx = await merkleERC.enableReveal();
+            await tx.wait(); // tx deployed here, waiting is important
+            console.log("Reveal enabled in tx : ", tx.hash);
+        }
         
+
         // // Transferring the tokens to some random accounts
         // for(var tokenID = 1; tokenID <= initialSupply; tokenID++){
         //     const tx = await merkleERC.transferFrom(deployer.address, accounts[tokenID].address, tokenID);
