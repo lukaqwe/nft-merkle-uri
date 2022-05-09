@@ -1,3 +1,30 @@
+# Available hardhat tasks
+
+```
+generate-merkle-proof: Generates proof.json file containing a merkle proof for each token url
+
+ARGS:
+        --address	address of the MerkleERC721 contract. 
+        --input  	metadata.json file that contains the url links for each tokenID 
+        --output 	output folder where the proof data will be generated 
+```
+
+```
+nft-deploy: Deploy the nft contract
+
+ARGS:
+        --input 	input to metadata.json where the url for each token are 
+        --output	output folder where the proof data will be generated 
+```
+
+```
+reveal: Reveal the URI of the token for all tokens available in metadata.json
+
+ARGS:
+        --address	address of the MerkleERC contract 
+        --input  	input to reveal_proofs.json where the url for each token are 
+```
+
 # Advanced Sample Hardhat Project
 
 This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.

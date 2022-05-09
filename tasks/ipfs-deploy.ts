@@ -1,7 +1,7 @@
 import {task} from "hardhat/config";
 
 
-const NFT_STORAGE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGEzNjEwYTZiYkMxMWQxNjkwNGZBN0RiNzc2OUUwRjI0ZjE0MTBiNTQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY1MTc0MDYyMzc4MSwibmFtZSI6Ik1lcmtsZU5GVCJ9.6V_5lnXW2AEmfuXMl7RjviYDMtOpiN8Jxqa4TsXXcrw";
+const NFT_STORAGE_KEY = "SOME_KEY";
 
 // Import the NFTStorage class and File constructor from the 'nft.storage' package
 import { NFTStorage, File } from 'nft.storage'
