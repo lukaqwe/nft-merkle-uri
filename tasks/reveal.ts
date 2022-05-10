@@ -1,9 +1,6 @@
 import {task} from "hardhat/config";
 import { MerkleERC721__factory } from "../typechain";
 import {readFileSync} from 'fs';
-import { url } from "inspector";
-import { BigNumber } from "ethers";
-// import {hre} from "@nomiclabs/hardhat-ethers";
 
 
 task('reveal', "Reveal the URI of the token for all tokens available in metadata.json")
@@ -35,18 +32,6 @@ task('reveal', "Reveal the URI of the token for all tokens available in metadata
 
             const uri = await merkleERC.tokenURI(tokenID);
             console.log("URI of token ", tokenID, "is", uri);
-        }
-
-        // Retrying to see if transaction fails
-        // for(let tokenID = 1; tokenID <= initialSupply; tokenID++ ){
-        //     try {
-        //         const tx = await merkleERC.reveal(tokenID, proofData[tokenID]["url"], proofData[tokenID]["proof"]);
-        //         console.log("Transaction passed on the second run, not good");
-        //     } catch (error) {
-        //         console.log("All good")
-        //     }
-        // }
-        
-    
+        }        
 
     })

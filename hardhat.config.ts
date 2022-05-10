@@ -10,6 +10,7 @@ import 'solidity-coverage';
 import 'hardhat-contract-sizer';
 import 'hardhat-deploy';
 import "hardhat-gas-reporter";
+import "hardhat-docgen"
 
 // import "./tasks/ipfs-deploy";
 import "./tasks/nft-deploy";
@@ -47,6 +48,11 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
+  docgen: {
+    path: './docs',
+    clear: true,
+    runOnCompile: false,
+  }
 };
 
 export default config;

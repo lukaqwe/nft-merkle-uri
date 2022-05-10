@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { ethers, network } from "hardhat";
-import { hrtime } from "process";
 import { readFileSync } from "fs";
 import { MerkleERC721__factory, MerkleERC721 } from "../typechain";
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
@@ -10,7 +9,6 @@ import {constructMerkleTree, RevealData, ProofData, ProofInfo} from "../tasks/ge
 import MerkleTree from "merkletreejs";
 
 import "../metadata.json";
-import { hexValue } from "ethers/lib/utils";
 
 describe("merkleERC721 testing suite", function () {
   let deployer: SignerWithAddress;

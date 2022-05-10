@@ -1,6 +1,5 @@
 import {task} from "hardhat/config";
 import { MerkleERC721__factory } from "../typechain";
-// import {hre} from "@nomiclabs/hardhat-ethers";
 
 
 task('nft-deploy', "Deploy the nft contract")
@@ -57,6 +56,4 @@ task('nft-deploy', "Deploy the nft contract")
         //     const tx = await merkleERC.transferFrom(deployer.address, accounts[tokenID].address, tokenID);
         //     console.log("Token", tokenID,"transferred to", accounts[tokenID].address, "in tx:", tx.hash);
         // }
-
-
     });
