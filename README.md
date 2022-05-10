@@ -25,6 +25,8 @@ ARGS:
         --input  	input to reveal_proofs.json where the url for each token are 
 ```
 
+Generate documentation using `yarn hardhat docgen`.
+
 # Advanced Sample Hardhat Project
 
 This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
