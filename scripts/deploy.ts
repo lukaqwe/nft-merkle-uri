@@ -14,8 +14,8 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const MerkleERC721 = await ethers.getContractFactory("MerkleERC721");
-  const merkleNFT = await MerkleERC721.deploy(3);
+  const merkleERC721 = await ethers.getContractFactory("MerkleERC721");
+  const merkleNFT = await meyarnrkleERC721.deploy(3);
 
   await merkleNFT.deployed();
 

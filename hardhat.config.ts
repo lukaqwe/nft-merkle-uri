@@ -1,21 +1,20 @@
 import * as dotenv from "dotenv";
 
-
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
-import '@nomiclabs/hardhat-ethers';
+import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
-import 'solidity-coverage';
-import 'hardhat-contract-sizer';
-import 'hardhat-deploy';
+import "solidity-coverage";
+import "hardhat-contract-sizer";
+import "hardhat-deploy";
 import "hardhat-gas-reporter";
-import "hardhat-docgen"
+import "hardhat-docgen";
 
 // import "./tasks/ipfs-deploy";
 import "./tasks/nft-deploy";
-import "./tasks/generate-merkle-proof"
-import "./tasks/reveal"
+import "./tasks/generate-merkle-proof";
+import "./tasks/reveal";
 
 dotenv.config();
 
@@ -36,7 +35,7 @@ const config: HardhatUserConfig = {
   solidity: "0.8.4",
   networks: {
     ropsten: {
-      url: process.env.ROPSTEN_URL || "",
+      url: process.env.ROPSTEN_URL ?? "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
@@ -49,10 +48,10 @@ const config: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   docgen: {
-    path: './docs',
+    path: "./docs",
     clear: true,
     runOnCompile: false,
-  }
+  },
 };
 
 export default config;

@@ -2,8 +2,6 @@
 pragma solidity ^0.8.0;
 
 
-
-
 interface IMerkleERC721{
 
     // ------------- Events ------------- //
@@ -32,9 +30,9 @@ interface IMerkleERC721{
     /**
      * @dev Function that sets the new uri for a specific token, fails when the merkle proof is not valid
      * @param tokenID Token for which the uri is set
-     * @param newURI Uri string that is set upon a valid proof
+     * @param uri Uri string that is set upon a valid proof
      * @param proof Bytes array expressing the path to the merkle root
-    */
+     */
     function reveal(uint256 tokenID, string memory uri, bytes32[] calldata proof) external;
 
     /**  
