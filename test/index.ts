@@ -54,7 +54,7 @@ describe("merkleERC721 testing suite", function () {
     }
   });
 
-  describe("When merkle root not set", async () => {
+  describe("When merkle root not set", () => {
     it("Has the bytes32('0x') merkle root", async () => {
       // console.log(await merkleERC.getMerkleRoot());
       expect(await merkleERC.getMerkleRoot()).to.equal(
@@ -92,7 +92,7 @@ describe("merkleERC721 testing suite", function () {
     });
   });
 
-  describe("When merkle root set", async () => {
+  describe("When merkle root set", () => {
     beforeEach(async () => {
       const tx = await merkleERC
         .connect(deployer)
@@ -120,7 +120,7 @@ describe("merkleERC721 testing suite", function () {
       await expect(tx).to.emit(merkleERC, "RevealEnabled");
     });
 
-    describe("When reveal enabled", async () => {
+    context("When reveal enabled", () => {
       beforeEach(async () => {
         const tx = await merkleERC.enableReveal();
         await tx.wait();

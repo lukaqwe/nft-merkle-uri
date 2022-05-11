@@ -78,46 +78,55 @@ task(
     undefined,
     types.string
   )
-  .setAction(async (args, hre) => {
-    const { input, output, address } = args;
-    const metadata = JSON.parse(readFileSync(input).toString());
+  .setAction(
+    async (
+      {
+        input,
+        output,
+        address,
+      }: { input: string; output: string; address: string },
+      hre
+    ) => {
+      // const { input, output, address } = args;
+      const metadata = JSON.parse(readFileSync(input).toString());
 
-    const chainId = await hre.getChainId();
-    console.log("Chain ID =", chainId);
-    // console.log(metadata);
+      const chainId = await hre.getChainId();
+      console.log("Chain ID =", chainId);
+      // console.log(metadata);
 
-    const tokenDataInput = new Array<RevealData>();
-    for (let i = 1; i <= 3; i++) {
-      // console.log(metadata[i]);
-      tokenDataInput.push({
-        tokenID: i,
-        URL: metadata[i],
+      const tokenDataInput = new Array<RevealData>();
+      for (let i = 1; i <= 3; i++) {
+        // console.log(metadata[i]);
+        tokenDataInput.push({
+          tokenID: i,
+          URL: metadata[i],
+        });
+      }
+
+      // console.log(tokenDataInput);
+      const [tree, proofs] = constructMerkleTree(
+        tokenDataInput,
+        Number(chainId),
+        address
+      );
+
+      const basePath = path.resolve(output, `${chainId.toString()}`);
+      await mkdir(basePath, { recursive: true });
+
+      const merkleRootFilePath = path.resolve(basePath, "merkle_root.txt");
+      writeFileSync(merkleRootFilePath, tree.getHexRoot());
+
+      const proofsAsObj: any = {};
+      proofs.forEach((value, key) => {
+        // console.log("KEY ", key);
+        // console.log(value);
+
+        proofsAsObj[key.toString()] = { url: value.URL, proof: value.Proof };
       });
+
+      const merkleProofsFilePath = path.resolve(basePath, "reveal_proofs.json");
+      writeFileSync(merkleProofsFilePath, JSON.stringify(proofsAsObj));
+
+      return tree.getHexRoot();
     }
-
-    // console.log(tokenDataInput);
-    const [tree, proofs] = constructMerkleTree(
-      tokenDataInput,
-      Number(chainId),
-      address
-    );
-
-    const basePath = path.resolve(output, `${chainId.toString()}`);
-    await mkdir(basePath, { recursive: true });
-
-    const merkleRootFilePath = path.resolve(basePath, "merkle_root.txt");
-    writeFileSync(merkleRootFilePath, tree.getHexRoot());
-
-    const proofsAsObj: any = {};
-    proofs.forEach((value, key) => {
-      // console.log("KEY ", key);
-      // console.log(value);
-
-      proofsAsObj[key.toString()] = { url: value.URL, proof: value.Proof };
-    });
-
-    const merkleProofsFilePath = path.resolve(basePath, "reveal_proofs.json");
-    writeFileSync(merkleProofsFilePath, JSON.stringify(proofsAsObj));
-
-    return tree.getHexRoot();
-  });
+  );

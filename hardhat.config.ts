@@ -11,7 +11,7 @@ import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import "hardhat-docgen";
 
-// import "./tasks/ipfs-deploy";
+import "./tasks/ipfs-deploy";
 import "./tasks/nft-deploy";
 import "./tasks/generate-merkle-proof";
 import "./tasks/reveal";

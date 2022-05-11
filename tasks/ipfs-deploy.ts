@@ -1,74 +1,107 @@
-import {task} from "hardhat/config";
-
-
-const NFT_STORAGE_KEY = "SOME_KEY";
+import { task, types } from "hardhat/config";
 
 // Import the NFTStorage class and File constructor from the 'nft.storage' package
-import { NFTStorage, File } from 'nft.storage'
+import { NFTStorage, File, TokenType } from "nft.storage";
 
 // The 'mime' npm package helps us set the correct file type on our File objects
-// import mime from 'mime'
+import mime from "mime";
 
 // The 'fs' builtin module on Node.js provides access to the file system
-import fs from 'fs'
+import fs from "fs";
+
+import { mkdir } from "fs/promises";
 
 // The 'path' module provides helpers for manipulating filesystem paths
-import path from 'path'
+import path from "path";
 
-
+// type TokenType = Token<{
+//   image: File;
+//   name: string;
+//   description: string;
+// }>
 
 /**
-  * Reads an image file from `imagePath` and stores an NFT with the given name and description.
-  * @param {string} imagePath the path to an image file
-  * @param {string} name a name for the NFT
-  * @param {string} description a text description for the NFT
-  */
-async function storeNFT(imagePath : string, name : string, description : string) {
-    // load the file from disk
-    const image = await fileFromPath(imagePath)
+ * Reads an image file from `imagePath` and stores an NFT with the given name and description.
+ * @param {string} imagePath the path to an image file
+ * @param {string} name a name for the NFT
+ * @param {string} description a text description for the NFT
+ */
+async function storeNFT(
+  imagePath: string,
+  name: string,
+  description: string,
+  API_KEY: string
+): Promise<
+  TokenType<{
+    image: File;
+    name: string;
+    description: string;
+  }>
+> {
+  // load the file from disk
+  const image = await fileFromPath(imagePath);
 
-    // create a new NFTStorage client using our API key
-    const nftstorage = new NFTStorage({ token: NFT_STORAGE_KEY })
+  // create a new NFTStorage client using our API key
+  const nftstorage = new NFTStorage({ token: API_KEY });
 
-    // call client.store, passing in the image & metadata
-    return nftstorage.store({
-        image,
-        name,
-        description,
-    })
+  // call client.store, passing in the image & metadata
+  // const url = (await token).url;
+  // console.log("URL =", url);
+  return nftstorage.store({
+    image,
+    name,
+    description,
+  });
 }
 
 /**
-  * A helper to read a file from a location on disk and return a File object.
-  * Note that this reads the entire file into memory and should not be used for
-  * very large files. 
-  * @param {string} filePath the path to a file to store
-  * @returns {File} a File object containing the file content
-  */
-async function fileFromPath(filePath : string) {
-    const content = await fs.promises.readFile(filePath)
-    const type = mime.getType(filePath)
-    return new File([content], path.basename(filePath), { type })
+ * A helper to read a file from a location on disk and return a File object.
+ * Note that this reads the entire file into memory and should not be used for
+ * very large files.
+ * @param {string} filePath the path to a file to store
+ * @returns {File} a File object containing the file content
+ */
+async function fileFromPath(filePath: string): Promise<File> {
+  const content = await fs.promises.readFile(filePath);
+  const type = mime.getType(filePath)!;
+  return new File([content], path.basename(filePath), { type });
 }
 
+task("ipfs-deploy")
+  .addParam("input", "Folder where the NFTs are", undefined, types.string)
+  .addParam(
+    "output",
+    "path where the metadata.json file will be generated",
+    undefined,
+    types.string
+  )
+  .addParam("key", "API key for nft.storage", undefined, types.string)
+  .setAction(
+    async ({
+      input,
+      output,
+      key,
+    }: {
+      input: string;
+      output: string;
+      key: string;
+    }) => {
+      // const { input, output, key } = args;
 
+      const files = fs.readdirSync(input);
+      const metadataAsObj: any = {};
 
+      for (const file of files) {
+        const tokenID = file.split(".")[0];
+        const token = await storeNFT(input + file, file, tokenID, key);
+        const url = token.url;
+        metadataAsObj[tokenID] = url;
+        console.log(url);
+      }
 
-task('ipfs-deploy')
-    .addParam("input", "Folder where the NFTs are")
-    .addParam("output", "path where the metadata.json file will be generated")
-    .setAction(async (args, hre) => {
-        const {input, output} = args;
-
-        fs.readdir(input, (err, files) => {
-            files.forEach((file) => {
-                console.log(file)
-            })       
-        })
-
+      const basePath = path.resolve(output);
+      await mkdir(basePath, { recursive: true });
+      const metadataFilePath = path.resolve(basePath, "metadata.json");
+      fs.writeFileSync(metadataFilePath, JSON.stringify(metadataAsObj));
     }
-
-
-
-    });
-
+  );
