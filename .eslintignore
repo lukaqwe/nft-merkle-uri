@@ -3,3 +3,4 @@ artifacts
 cache
 coverage
 docs
+.eslintrc.js

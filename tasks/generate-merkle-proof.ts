@@ -12,13 +12,19 @@ export type RevealData = {
 
 export type ProofsWithUrl = {
   URL: string;
-  Proof: Array<string>;
+  proof: Array<string>;
+};
+
+export type RevealProofData = {
+  tokenID: number;
+  URL: string;
+  proof: Array<string>;
 };
 
 export type ProofInfo = Map<number, ProofsWithUrl>;
-export type ProofData = Map<RevealData, Array<string>>;
+// export type ProofData = Map<RevealData, Array<string>>;
 
-export function constructMerkleTree(
+export const constructMerkleTree = function (
   inputs: Array<RevealData>,
   chainId: number,
   address: string
@@ -36,15 +42,15 @@ export function constructMerkleTree(
   for (const input of revealDataWithHashes.keys()) {
     const hash = revealDataWithHashes.get(input)!;
     const proof = tree.getHexProof(hash);
-    proofData.set(input.tokenID, { URL: input.URL, Proof: proof });
+    proofData.set(input.tokenID, { URL: input.URL, proof: proof });
   }
 
   // console.log(proofData)
 
   return [tree, proofData];
-}
+};
 
-function constructHash(
+const constructHash = function (
   chainId: number,
   tokenId: number,
   URL: string,
@@ -56,7 +62,7 @@ function constructHash(
   );
   // console.log(tokenId, hash);
   return Buffer.from(hash.slice(2), "hex"); // First two characters are '0x'
-}
+};
 
 task(
   "generate-merkle-proof",
@@ -87,19 +93,20 @@ task(
       }: { input: string; output: string; address: string },
       hre
     ) => {
-      // const { input, output, address } = args;
-      const metadata = JSON.parse(readFileSync(input).toString());
+      const metadata = JSON.parse(
+        readFileSync(input).toString()
+      ) as Array<RevealData>;
 
       const chainId = await hre.getChainId();
-      console.log("Chain ID =", chainId);
+      // console.log("Chain ID =", chainId);
       // console.log(metadata);
 
       const tokenDataInput = new Array<RevealData>();
-      for (let i = 1; i <= 3; i++) {
+      for (let i = 0; i < metadata.length; i++) {
         // console.log(metadata[i]);
         tokenDataInput.push({
-          tokenID: i,
-          URL: metadata[i],
+          tokenID: metadata[i].tokenID,
+          URL: metadata[i].URL,
         });
       }
 
@@ -116,16 +123,14 @@ task(
       const merkleRootFilePath = path.resolve(basePath, "merkle_root.txt");
       writeFileSync(merkleRootFilePath, tree.getHexRoot());
 
-      const proofsAsObj: any = {};
-      proofs.forEach((value, key) => {
-        // console.log("KEY ", key);
-        // console.log(value);
+      const proofObj = new Array<RevealProofData>();
 
-        proofsAsObj[key.toString()] = { url: value.URL, proof: value.Proof };
+      proofs.forEach((value, key) => {
+        proofObj.push({ tokenID: key, URL: value.URL, proof: value.proof });
       });
 
       const merkleProofsFilePath = path.resolve(basePath, "reveal_proofs.json");
-      writeFileSync(merkleProofsFilePath, JSON.stringify(proofsAsObj));
+      writeFileSync(merkleProofsFilePath, JSON.stringify(proofObj));
 
       return tree.getHexRoot();
     }

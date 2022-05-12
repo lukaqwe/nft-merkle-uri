@@ -13,6 +13,7 @@ import { mkdir } from "fs/promises";
 
 // The 'path' module provides helpers for manipulating filesystem paths
 import path from "path";
+import { RevealData } from "./generate-merkle-proof";
 
 // type TokenType = Token<{
 //   image: File;
@@ -26,7 +27,8 @@ import path from "path";
  * @param {string} name a name for the NFT
  * @param {string} description a text description for the NFT
  */
-async function storeNFT(
+
+const storeNFT = async function (
   imagePath: string,
   name: string,
   description: string,
@@ -52,7 +54,7 @@ async function storeNFT(
     name,
     description,
   });
-}
+};
 
 /**
  * A helper to read a file from a location on disk and return a File object.
@@ -61,11 +63,11 @@ async function storeNFT(
  * @param {string} filePath the path to a file to store
  * @returns {File} a File object containing the file content
  */
-async function fileFromPath(filePath: string): Promise<File> {
+const fileFromPath = async function (filePath: string): Promise<File> {
   const content = await fs.promises.readFile(filePath);
   const type = mime.getType(filePath)!;
   return new File([content], path.basename(filePath), { type });
-}
+};
 
 task("ipfs-deploy")
   .addParam("input", "Folder where the NFTs are", undefined, types.string)
@@ -89,14 +91,14 @@ task("ipfs-deploy")
       // const { input, output, key } = args;
 
       const files = fs.readdirSync(input);
-      const metadataAsObj: any = {};
+      const metadataAsObj = new Array<RevealData>();
 
       for (const file of files) {
         const tokenID = file.split(".")[0];
         const token = await storeNFT(input + file, file, tokenID, key);
         const url = token.url;
-        metadataAsObj[tokenID] = url;
-        console.log(url);
+        metadataAsObj.push({ tokenID: Number(tokenID), URL: url });
+        console.log("URL of token", tokenID, "is:", url);
       }
 
       const basePath = path.resolve(output);

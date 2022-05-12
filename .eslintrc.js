@@ -90,7 +90,6 @@ module.exports = {
     "@typescript-eslint/no-throw-literal": "error",
     "@typescript-eslint/no-unnecessary-boolean-literal-compare": "error",
     "@typescript-eslint/no-unnecessary-condition": "error",
-    "@typescript-eslint/prefer-for-of": "error",
     "@typescript-eslint/prefer-nullish-coalescing": "error",
     "@typescript-eslint/prefer-optional-chain": "error",
     "@typescript-eslint/prefer-readonly": "error",

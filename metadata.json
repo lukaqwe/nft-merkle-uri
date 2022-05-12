@@ -1,5 +1,1 @@
-{   
-    "1" : "ipfs://bafkreigo3pws356f5femwbjdo5d4sjibixqehqtemfcvk5vvvsnmnas2pq",
-    "2" : "ipfs://bafkreiaauymh6s4okct2suzhz532srvwu7qpepuhn3qdjldfz6a4xyrkv4",
-    "3" : "ipfs://bafkreif5sslxkqbtr7c4nl24ezrvrca45dhsojvlclpido3oynvki2yf2i"
-}
+[{"tokenID":1,"URL":"ipfs://bafyreif64emhrpuv22s64t4jqk4jfrzz2onzhtnxxnijopeurtjq7oktum/metadata.json"},{"tokenID":2,"URL":"ipfs://bafyreiavce4fawzzj6ee5qwukgxc23smrl4nmxyxhicxjfd5xoz26d7z7e/metadata.json"},{"tokenID":3,"URL":"ipfs://bafyreidniygz72qkw5i7sgz7smggd2xanhk2y2smva3hrczmt6qq3hroyq/metadata.json"}]

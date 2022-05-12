@@ -21,21 +21,16 @@ describe("merkleERC721 testing suite", function () {
   let merkleERC: MerkleERC721;
   let tree: MerkleTree;
   let proofData: ProofInfo;
-  // let data: any;
-  const maxSupply = 3;
+  let maxSupply: number;
 
   beforeEach(async () => {
     deployer = (await ethers.getSigners())[0];
 
     // Parsing the input
-    const data = JSON.parse(readFileSync("metadata.json").toString());
-    const tokenDataInput = new Array<RevealData>();
-    for (let i = 1; i <= maxSupply; i++) {
-      tokenDataInput.push({
-        tokenID: i,
-        URL: data[i],
-      });
-    }
+    const tokenDataInput = JSON.parse(
+      readFileSync("metadata.json").toString()
+    ) as Array<RevealData>;
+    maxSupply = tokenDataInput.length;
 
     // Deploying the contract
     merkleERC = await new MerkleERC721__factory(deployer).deploy(maxSupply);
@@ -119,81 +114,84 @@ describe("merkleERC721 testing suite", function () {
       expect(await merkleERC.revealEnabled()).to.eq(true);
       await expect(tx).to.emit(merkleERC, "RevealEnabled");
     });
+  });
 
-    context("When reveal enabled", () => {
-      beforeEach(async () => {
-        const tx = await merkleERC.enableReveal();
-        await tx.wait();
-      });
+  describe("When merkle root set and reveal enabled", () => {
+    beforeEach(async () => {
+      let tx = await merkleERC
+        .connect(deployer)
+        .setMerkleRoot(tree.getHexRoot());
+      await tx.wait();
+      tx = await merkleERC.enableReveal();
+      await tx.wait();
+    });
 
-      it("Reveal cannot be enabled twice", async () => {
-        await expect(merkleERC.enableReveal()).to.be.reverted;
-      });
+    it("Reveal cannot be enabled twice", async () => {
+      await expect(merkleERC.enableReveal()).to.be.reverted;
+    });
 
-      it("Merkle root cannot be set again", async () => {
-        await expect(merkleERC.setMerkleRoot(tree.getHexRoot())).to.be.reverted;
-      });
+    it("Merkle root cannot be set again", async () => {
+      await expect(merkleERC.setMerkleRoot(tree.getHexRoot())).to.be.reverted;
+    });
 
-      it("Reveal fails with invalid url", async () => {
-        for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
-          const proof = proofData.get(tokenID)!.Proof;
-          await expect(merkleERC.reveal(tokenID, "abcdef", proof)).to.be
-            .reverted;
-        }
-      });
+    it("Reveal fails with invalid url", async () => {
+      for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
+        const proof = proofData.get(tokenID)!.proof;
+        await expect(merkleERC.reveal(tokenID, "abcdef", proof)).to.be.reverted;
+      }
+    });
 
-      it("Reveal fails with invalid proof", async () => {
-        for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
-          const proof = [
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-          ];
-          const url = proofData.get(tokenID)!.URL;
-          await expect(merkleERC.reveal(tokenID, url, proof)).to.be.reverted;
-        }
-      });
-
-      it("Reveal with valid proof fails at second attempt", async () => {
-        for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
-          const proof = proofData.get(tokenID)!.Proof;
-          const url = proofData.get(tokenID)!.URL;
-          const tx = await merkleERC.reveal(tokenID, url, proof);
-          await tx.wait();
-        }
-
-        for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
-          const proof = proofData.get(tokenID)!.Proof;
-          const url = proofData.get(tokenID)!.URL;
-          await expect(merkleERC.reveal(tokenID, url, proof)).to.be.reverted;
-        }
-      });
-
-      it("Reveal fails if not called by the token owner", async () => {
-        for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
-          const proof = proofData.get(tokenID)!.Proof;
-          const url = proofData.get(tokenID)!.URL;
-          await expect(merkleERC.connect(stranger).reveal(tokenID, url, proof))
-            .to.be.reverted;
-        }
-      });
-
-      it("Reveal fails for unexisting token", async () => {
-        const tokenID = maxSupply + 1;
-        const proof = proofData.get(tokenID - 1)!.Proof;
-        const url = proofData.get(tokenID - 1)!.URL;
+    it("Reveal fails with invalid proof", async () => {
+      for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
+        const proof = [
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+        ];
+        const url = proofData.get(tokenID)!.URL;
         await expect(merkleERC.reveal(tokenID, url, proof)).to.be.reverted;
-      });
+      }
+    });
 
-      it("Reveal succedes with valid proof", async () => {
-        for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
-          const proof = proofData.get(tokenID)!.Proof;
-          const url = proofData.get(tokenID)!.URL;
-          const tx = await merkleERC.reveal(tokenID, url, proof);
-          await tx.wait();
-          await expect(tx)
-            .to.emit(merkleERC, "UpdatedURI")
-            .withArgs(tokenID, url);
-        }
-      });
+    it("Reveal with valid proof fails at second attempt", async () => {
+      for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
+        const proof = proofData.get(tokenID)!.proof;
+        const url = proofData.get(tokenID)!.URL;
+        const tx = await merkleERC.reveal(tokenID, url, proof);
+        await tx.wait();
+      }
+
+      for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
+        const proof = proofData.get(tokenID)!.proof;
+        const url = proofData.get(tokenID)!.URL;
+        await expect(merkleERC.reveal(tokenID, url, proof)).to.be.reverted;
+      }
+    });
+
+    it("Reveal fails if not called by the token owner", async () => {
+      for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
+        const proof = proofData.get(tokenID)!.proof;
+        const url = proofData.get(tokenID)!.URL;
+        await expect(merkleERC.connect(stranger).reveal(tokenID, url, proof)).to
+          .be.reverted;
+      }
+    });
+
+    it("Reveal fails for unexisting token", async () => {
+      const tokenID = maxSupply + 1;
+      const proof = proofData.get(tokenID - 1)!.proof;
+      const url = proofData.get(tokenID - 1)!.URL;
+      await expect(merkleERC.reveal(tokenID, url, proof)).to.be.reverted;
+    });
+
+    it("Reveal succedes with valid proof", async () => {
+      for (let tokenID = 1; tokenID <= maxSupply; tokenID++) {
+        const proof = proofData.get(tokenID)!.proof;
+        const url = proofData.get(tokenID)!.URL;
+        const tx = await merkleERC.reveal(tokenID, url, proof);
+        await tx.wait();
+        await expect(tx)
+          .to.emit(merkleERC, "UpdatedURI")
+          .withArgs(tokenID, url);
+      }
     });
   });
 });
